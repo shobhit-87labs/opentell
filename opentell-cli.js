@@ -22,6 +22,8 @@
  */
 
 const fs = require("fs");
+const path = require("path");
+const os = require("os");
 const { buildStatus, buildContext } = require("./lib/skill-writer");
 const { loadLearnings, saveLearnings, removeLearning, resetAll, getAllLearnings, getPromotable, getInferredLearnings, acceptObservation, rejectObservation } = require("./lib/store");
 const { previewPromotion, promoteToClaudeMd } = require("./lib/promoter");
@@ -268,6 +270,81 @@ async function run() {
       console.log("OpenTell resumed. Learning from your corrections again.");
       break;
 
+    case "uninstall": {
+      const claudeSettings = path.join(os.homedir(), ".claude", "settings.json");
+      const withData = args.includes("--data");
+
+      console.log("OpenTell — Uninstall");
+      console.log("─".repeat(40));
+
+      // 1. Remove hooks from ~/.claude/settings.json
+      if (fs.existsSync(claudeSettings)) {
+        let settings;
+        try {
+          settings = JSON.parse(fs.readFileSync(claudeSettings, "utf-8"));
+        } catch {
+          console.error("Could not parse ~/.claude/settings.json — remove hooks manually.");
+          process.exit(1);
+        }
+
+        if (settings.hooks) {
+          let removed = 0;
+          for (const event of ["SessionStart", "Stop", "SessionEnd"]) {
+            if (!settings.hooks[event]) continue;
+            const before = settings.hooks[event].length;
+            settings.hooks[event] = settings.hooks[event].filter((group) => {
+              const s = JSON.stringify(group);
+              return !s.includes("opentell") &&
+                     !s.includes("on-session-start.js") &&
+                     !s.includes("on-stop.js") &&
+                     !s.includes("on-session-end.js");
+            });
+            removed += before - settings.hooks[event].length;
+            if (settings.hooks[event].length === 0) {
+              delete settings.hooks[event];
+            }
+          }
+          if (Object.keys(settings.hooks).length === 0) {
+            delete settings.hooks;
+          }
+          fs.writeFileSync(claudeSettings, JSON.stringify(settings, null, 2));
+          console.log(`✓ Removed ${removed} hook(s) from ~/.claude/settings.json`);
+        } else {
+          console.log("  No OpenTell hooks found in ~/.claude/settings.json");
+        }
+      } else {
+        console.log("  ~/.claude/settings.json not found — nothing to remove");
+      }
+
+      // 2. Remove symlink
+      const symlink = path.join(os.homedir(), ".local", "bin", "opentell");
+      if (fs.existsSync(symlink)) {
+        try {
+          fs.unlinkSync(symlink);
+          console.log("✓ Removed ~/.local/bin/opentell symlink");
+        } catch {
+          console.log("  Could not remove ~/.local/bin/opentell — remove manually if needed");
+        }
+      }
+
+      // 3. Optionally delete data
+      if (withData) {
+        try {
+          fs.rmSync(paths.root, { recursive: true, force: true });
+          console.log("✓ Deleted ~/.opentell/ (all learnings and data)");
+        } catch (e) {
+          console.error(`  Could not delete ~/.opentell/: ${e.message}`);
+        }
+      } else {
+        console.log(`  Data kept at ${paths.root}`);
+        console.log("  Run 'opentell uninstall --data' to also delete all learnings");
+      }
+
+      console.log("");
+      console.log("Uninstall complete. Restart Claude Code to apply.");
+      break;
+    }
+
     case "reset": {
       if (args[1] !== "--confirm") {
         console.log("This will delete ALL learnings permanently.");
@@ -363,6 +440,8 @@ Commands:
   opentell reject <n>      Reject an observation (archives it)
   opentell remove <n>      Remove learning by number
   opentell pause/resume    Pause or resume learning
+  opentell uninstall       Remove hooks from Claude Code (keeps data)
+  opentell uninstall --data  Remove hooks and delete all data
   opentell reset --confirm Clear all learnings
   opentell export [file]   Export learnings as JSON
   opentell import <file>   Import learnings from JSON
