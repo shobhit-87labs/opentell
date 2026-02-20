@@ -113,6 +113,7 @@ opentell pause / resume       # Pause or resume learning
 opentell reset --confirm      # Clear everything
 opentell export [file]        # Export learnings as JSON
 opentell import <file>        # Import learnings from JSON
+opentell stats                # Show API call counts, token usage, and cost
 opentell log [n]              # Show last n log entries
 opentell config               # Show configuration
 ```
@@ -298,6 +299,7 @@ You can verify all network calls yourself — there are exactly three `fetch()` 
 ├── learnings.json       # All learnings + evidence (stays local)
 ├── wal.jsonl            # Write-ahead log (stays local)
 ├── profile.json         # Synthesized developer profile (stays local)
+├── stats.json           # API call counts, token usage, cost totals (stays local)
 └── opentell.log         # Detection log — API key never written here
 ```
 

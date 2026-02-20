@@ -311,6 +311,13 @@ async function run() {
       break;
     }
 
+    case "stats":
+    case "usage": {
+      const { formatStats } = require("./lib/stats");
+      console.log(formatStats());
+      break;
+    }
+
     case "log": {
       const n = parseInt(args[1], 10) || 30;
       if (fs.existsSync(paths.log)) {
@@ -359,6 +366,7 @@ Commands:
   opentell reset --confirm Clear all learnings
   opentell export [file]   Export learnings as JSON
   opentell import <file>   Import learnings from JSON
+  opentell stats           Show API call counts, token usage, and cost
   opentell log [n]         Show last n log entries
   opentell config          Show configuration`);
       break;
