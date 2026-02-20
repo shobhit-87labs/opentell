@@ -303,6 +303,43 @@ You can verify all network calls yourself — there are exactly three `fetch()` 
 
 ---
 
+## Configuration
+
+Edit `~/.opentell/config.json` to customise behaviour:
+
+```json
+{
+  "anthropic_api_key": "sk-ant-...",
+
+  "classifier_model": "claude-haiku-4-5-20251001",
+  "synthesis_model":  "claude-haiku-4-5-20251001",
+
+  "confidence_threshold": 0.45,
+  "max_learnings": 100,
+  "paused": false
+}
+```
+
+| Field | Default | Purpose |
+|---|---|---|
+| `classifier_model` | `claude-haiku-4-5-20251001` | Turn-pair classification (Layer 2). Called once per ambiguous turn — keep this Haiku for cost. |
+| `synthesis_model` | `claude-haiku-4-5-20251001` | Developer profile synthesis and consolidation. Low-volume — upgrade to Sonnet for richer profiles. |
+| `confidence_threshold` | `0.45` | Minimum confidence for a learning to be injected at session start. |
+| `max_learnings` | `100` | Cap on stored learnings. |
+| `paused` | `false` | Set to `true` to suspend all detection without uninstalling. |
+
+**Upgrading the synthesis model** for a better developer profile:
+```json
+"synthesis_model": "claude-sonnet-4-6"
+```
+Cost impact: profile synthesis runs roughly once every 5 sessions (~$0.01/run). Consolidation is similar. Classifier stays on Haiku regardless.
+
+For available model IDs see: [docs.anthropic.com/en/docs/about-claude/models](https://docs.anthropic.com/en/docs/about-claude/models)
+
+> **Note:** Model IDs with date suffixes (e.g. `20251001`) can be deprecated by Anthropic. If classification stops working, check the models page and update `config.json`. The default constants in `lib/config.js` are the single source of truth in the codebase — update `DEFAULT_CLASSIFIER_MODEL` / `DEFAULT_SYNTHESIS_MODEL` there when releasing a new version.
+
+---
+
 ## Architecture
 
 **Zero npm dependencies.** Uses only Node.js built-ins + native `fetch` (Node 18+). The LLM classifier calls the Anthropic API directly.

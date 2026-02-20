@@ -25,12 +25,20 @@ if [ ! -f "$OPENTELL_DIR/config.json" ]; then
 {
   "anthropic_api_key": "",
   "classifier_model": "claude-haiku-4-5-20251001",
+  "synthesis_model": "claude-haiku-4-5-20251001",
   "confidence_threshold": 0.45,
   "max_learnings": 100,
   "paused": false
 }
 EOF
   echo "✓ Created default config at $OPENTELL_DIR/config.json"
+  echo ""
+  echo "  Two model fields (edit $OPENTELL_DIR/config.json to change):"
+  echo "    classifier_model  — turn-pair classification (Layer 2, high-volume)"
+  echo "    synthesis_model   — profile synthesis + consolidation (low-volume)"
+  echo "  Both default to Haiku (fast, cheap). You can upgrade synthesis_model"
+  echo "  to a Sonnet model for richer developer profiles at slightly higher cost."
+  echo "  Model list: https://docs.anthropic.com/en/docs/about-claude/models"
 fi
 
 # 3. API key setup
