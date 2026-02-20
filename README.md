@@ -261,18 +261,45 @@ Typical monthly cost for regular usage: **$0.10–$0.50**
 
 ---
 
+## Privacy
+
+OpenTell has no server. There is no telemetry, no analytics, and no account.
+
+**Your API key:**
+- Stored only in `~/.opentell/config.json` on your local machine
+- Sent exclusively to `https://api.anthropic.com` for classification, profile synthesis, and consolidation calls
+- Never written to `opentell.log`
+- Never included in `opentell export` output
+- Masked in `opentell config` terminal output (shows `sk-ant-api03-...xxxx`)
+
+**Your conversation content:**
+- The Stop hook extracts the last 1–2 turn pairs from your local Claude Code transcript
+- Only up to 500 chars of each side of the conversation are sent to Anthropic for classification (Layer 2)
+- Evidence stored per learning is capped at 300 chars — no raw code, no full messages
+- Your transcript file itself is never read in full and never leaves your machine
+
+**What goes to Anthropic API:**
+- Short excerpts of conversation turns for classification (`classifySingle`)
+- Your accumulated learnings (as a list of short text strings) for profile synthesis
+- Nothing else
+
+You can verify all network calls yourself — there are exactly three `fetch()` calls in the codebase, all to `https://api.anthropic.com/v1/messages`:
+- `lib/classifier.js:175`
+- `lib/profiler.js:112`
+- `lib/consolidator.js:148`
+
+---
+
 ## Data Storage
 
 ```
 ~/.opentell/
-├── config.json          # API key, model, thresholds
-├── learnings.json       # All learnings + evidence
-├── wal.jsonl            # Write-ahead log (crash safety)
-├── profile.json         # Synthesized developer profile
-└── opentell.log         # Detection log
+├── config.json          # API key, model, thresholds (stays local)
+├── learnings.json       # All learnings + evidence (stays local)
+├── wal.jsonl            # Write-ahead log (stays local)
+├── profile.json         # Synthesized developer profile (stays local)
+└── opentell.log         # Detection log — API key never written here
 ```
-
-No data leaves your machine except what's sent to the Anthropic API for classification. Evidence stored per learning is limited to 300 chars of context — not raw code.
 
 ---
 

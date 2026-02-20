@@ -324,8 +324,15 @@ async function run() {
 
     case "config": {
       const config = loadConfig();
-      console.log(JSON.stringify(config, null, 2));
+      const display = { ...config };
+      if (display.anthropic_api_key) {
+        // Mask key — show prefix and last 4 chars only
+        const k = display.anthropic_api_key;
+        display.anthropic_api_key = k.slice(0, 12) + "..." + k.slice(-4);
+      }
+      console.log(JSON.stringify(display, null, 2));
       console.log(`\nConfig file: ${paths.config}`);
+      console.log("(API key is masked. Edit the file directly to change it.)");
       break;
     }
 

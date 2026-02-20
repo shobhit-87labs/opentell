@@ -55,6 +55,11 @@ echo "     The API is a separate product. Cost: ~\$0.001/pair, typically"
 echo "     under \$0.50/month for normal usage."
 echo "     Get a key: https://console.anthropic.com/settings/keys"
 echo ""
+echo "  🔒 Privacy: your key is stored only in ~/.opentell/config.json"
+echo "     on this machine. OpenTell has no server — the key is sent"
+echo "     exclusively to api.anthropic.com for classification calls."
+echo "     It is never logged, never exported, and goes nowhere else."
+echo ""
 
 # Check if a key is already available
 EXISTING_KEY=""
