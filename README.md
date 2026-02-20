@@ -254,11 +254,13 @@ You don't need to manually review everything. If Claude observed something corre
 |-------|------|------|
 | Regex detection | Free | Every turn |
 | Observation capture | Free | Every turn |
-| LLM classification (Haiku) | ~$0.001/pair | Session end, ambiguous pairs only |
-| Profile synthesis (Haiku) | ~$0.01 | When profile is stale (every ~5 sessions) |
-| Consolidation (Haiku) | ~$0.02 | When 3+ related learnings exist |
+| LLM classification (Haiku 4.5) | ~$0.002/pair | Session end, ambiguous pairs only |
+| Profile synthesis (Haiku 4.5) | ~$0.02 | When profile is stale (every ~5 sessions) |
+| Consolidation (Haiku 4.5) | ~$0.03 | When 3+ related learnings exist |
 
-Typical monthly cost for regular usage: **$0.10–$0.50**
+Typical monthly cost for regular usage: **$0.20–$1.00**
+
+> Prices based on Haiku 4.5 ($1.00/$5.00 per MTok in/out). Run `opentell stats` to see your exact usage and cost. See [Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing) for current rates.
 
 ---
 
