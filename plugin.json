@@ -1,14 +1,14 @@
 {
-  "name": "instinct",
+  "name": "opentell",
   "version": "0.1.0",
   "description": "Claude Code learns your coding preferences from corrections. Stop re-teaching your style every session.",
   "author": "Eighty7 Labs",
   "hooks": "hooks/hooks.json",
   "commands": [
     {
-      "name": "instinct",
+      "name": "opentell",
       "description": "View and manage learned coding preferences",
-      "path": "commands/instinct.md"
+      "path": "commands/opentell.md"
     }
   ]
 }

@@ -30,7 +30,7 @@ function assertClassification(result, cls) {
     `No signal with classification "${cls}". Got: ${result.signals.map(s => s.classification).join(", ")}`);
 }
 
-console.log("━━━ Instinct Detector Tests ━━━\n");
+console.log("━━━ OpenTell Detector Tests ━━━\n");
 
 // --- Corrections ---
 console.log("--- Corrections ---");

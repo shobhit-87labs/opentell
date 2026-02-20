@@ -1,5 +1,5 @@
 {
-  "description": "Instinct — learns your coding preferences from corrections",
+  "description": "OpenTell — learns your coding preferences from corrections",
   "hooks": {
     "SessionStart": [
       {

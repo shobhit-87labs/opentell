@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Instinct — SessionStart Hook
+ * OpenTell — SessionStart Hook
  * 
  * Fires when Claude Code starts a new session.
  * Reads learned preferences and outputs them as additionalContext.

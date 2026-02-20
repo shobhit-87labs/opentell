@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Instinct — SessionEnd Hook
+ * OpenTell — SessionEnd Hook
  * 
  * Fires when Claude Code session ends.
  * Runs the full intelligence pipeline:

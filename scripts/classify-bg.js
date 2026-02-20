@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Instinct — Background Classifier
+ * OpenTell — Background Classifier
  * 
  * Spawned as a detached process by the Stop hook.
  * Receives a single (claude_said, user_said) pair as base64-encoded argv,

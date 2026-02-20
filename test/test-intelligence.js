@@ -15,7 +15,7 @@ const path = require("path");
 const os = require("os");
 
 // Override paths before requiring anything
-const TEST_DIR = path.join(os.tmpdir(), `instinct-test-intel-${Date.now()}`);
+const TEST_DIR = path.join(os.tmpdir(), `opentell-test-intel-${Date.now()}`);
 fs.mkdirSync(TEST_DIR, { recursive: true });
 
 // Monkey-patch config paths
@@ -26,7 +26,7 @@ config.paths.config = path.join(TEST_DIR, "config.json");
 config.paths.db = path.join(TEST_DIR, "learnings.json");
 config.paths.buffer = path.join(TEST_DIR, "session-buffer.json");
 config.paths.wal = path.join(TEST_DIR, "wal.jsonl");
-config.paths.log = path.join(TEST_DIR, "instinct.log");
+config.paths.log = path.join(TEST_DIR, "opentell.log");
 
 const { addCandidate, loadLearnings, saveLearnings, resetAll, getActiveLearnings, getPromotable, markPromoted, appendWal, drainWal, clearWal, ACTIVATION_THRESHOLD, PROMOTION_THRESHOLD } = require("../lib/store");
 const { findClusters } = require("../lib/consolidator");
@@ -273,7 +273,7 @@ fs.mkdirSync(testProjectRoot, { recursive: true });
 const result = promoteToClaudeMd(testProjectRoot);
 const claudeMd = fs.readFileSync(path.join(testProjectRoot, "CLAUDE.md"), "utf-8");
 
-assert(claudeMd.includes("<!-- instinct:start -->"), "CLAUDE.md has instinct section markers");
+assert(claudeMd.includes("<!-- opentell:start -->"), "CLAUDE.md has instinct section markers");
 assert(claudeMd.includes("How We Build"), "CLAUDE.md groups thinking patterns");
 assert(claudeMd.includes("Conventions"), "CLAUDE.md groups preferences");
 assert(claudeMd.includes("Quality Standards"), "CLAUDE.md groups quality standards");
@@ -288,7 +288,7 @@ promoteToClaudeMd(testProjectRoot);
 const updatedClaudeMd = fs.readFileSync(path.join(testProjectRoot, "CLAUDE.md"), "utf-8");
 assert(updatedClaudeMd.includes("New insight"), "Updated CLAUDE.md contains new promotion");
 // Should only have ONE instinct section
-const startCount = (updatedClaudeMd.match(/<!-- instinct:start -->/g) || []).length;
+const startCount = (updatedClaudeMd.match(/<!-- opentell:start -->/g) || []).length;
 assert(startCount === 1, "CLAUDE.md has exactly one instinct section (replaced, not duplicated)");
 
 // ═══════════════════════════════════════════════════════════════

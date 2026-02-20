@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
 /**
- * Instinct — Live Simulation
- * 
+ * OpenTell — Live Simulation
+ *
  * Simulates 10 Claude Code sessions with realistic correction patterns.
  * Shows the full lifecycle: detection → reinforcement → cross-session
  * upgrades → consolidation → profile synthesis → promotion.
- * 
+ *
  * Usage:
  *   node test/simulate.js                  # regex-only (no API key needed)
  *   ANTHROPIC_API_KEY=sk-... node test/simulate.js   # full LLM + profile
- * 
- * This doesn't touch your real ~/.instinct data — runs in a temp directory.
+ *
+ * This doesn't touch your real ~/.opentell data — runs in a temp directory.
  */
 
 const fs = require("fs");
@@ -19,7 +19,7 @@ const path = require("path");
 const os = require("os");
 
 // ─── Isolated test environment ────────────────────────────────────────
-const SIM_DIR = path.join(os.tmpdir(), `instinct-sim-${Date.now()}`);
+const SIM_DIR = path.join(os.tmpdir(), `opentell-sim-${Date.now()}`);
 fs.mkdirSync(SIM_DIR, { recursive: true });
 
 // Patch config paths BEFORE requiring anything else
@@ -29,7 +29,7 @@ config.paths.config = path.join(SIM_DIR, "config.json");
 config.paths.db = path.join(SIM_DIR, "learnings.json");
 config.paths.buffer = path.join(SIM_DIR, "session-buffer.json");
 config.paths.wal = path.join(SIM_DIR, "wal.jsonl");
-config.paths.log = path.join(SIM_DIR, "instinct.log");
+config.paths.log = path.join(SIM_DIR, "opentell.log");
 
 // Patch profiler path
 const profiler = require("../lib/profiler");
@@ -145,7 +145,7 @@ const SESSIONS = [
 
 async function simulate() {
   console.log("╔══════════════════════════════════════════════════════════════╗");
-  console.log("║          Instinct — Live Simulation (10 Sessions)           ║");
+  console.log("║          OpenTell — Live Simulation (10 Sessions)           ║");
   console.log("║                                                              ║");
   if (HAS_API_KEY) {
     console.log("║  Mode: FULL (regex + LLM classification + profile)          ║");
@@ -356,13 +356,13 @@ async function simulate() {
   console.log(`\n${"─".repeat(60)}`);
   console.log(`  Simulation data: ${SIM_DIR}`);
   console.log(`  View learnings: cat ${path.join(SIM_DIR, "learnings.json")} | jq .`);
-  console.log(`  View log: cat ${path.join(SIM_DIR, "instinct.log")}`);
+  console.log(`  View log: cat ${path.join(SIM_DIR, "opentell.log")}`);
   console.log(`${"─".repeat(60)}`);
   console.log("\n  To test with real Claude Code:");
-  console.log("    1. cd instinct && bash setup.sh");
-  console.log("    2. Set ANTHROPIC_API_KEY in ~/.instinct/config.json");
+  console.log("    1. cd opentell && bash setup.sh");
+  console.log("    2. Set ANTHROPIC_API_KEY in ~/.opentell/config.json");
   console.log("    3. Start a Claude Code session and correct it naturally");
-  console.log("    4. Run: node instinct-cli.js");
+  console.log("    4. Run: node opentell-cli.js");
   console.log("");
 }
 

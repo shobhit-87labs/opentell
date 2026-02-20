@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Instinct — Stop Hook
+ * OpenTell — Stop Hook
  * 
  * Fires when Claude finishes responding.
  * 1. Reads transcript, finds last (assistant, user) pair

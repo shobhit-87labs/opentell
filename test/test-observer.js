@@ -15,7 +15,7 @@ const fs = require("fs");
 const os = require("os");
 
 // ─── Test isolation ──────────────────────────────────────────────────────────
-const TEST_DIR = path.join(os.tmpdir(), `instinct-observer-test-${Date.now()}`);
+const TEST_DIR = path.join(os.tmpdir(), `opentell-observer-test-${Date.now()}`);
 fs.mkdirSync(TEST_DIR, { recursive: true });
 
 // Monkey-patch paths before requiring modules
@@ -26,7 +26,7 @@ config.paths = {
   db:     path.join(TEST_DIR, "learnings.json"),
   wal:    path.join(TEST_DIR, "wal.jsonl"),
   buffer: path.join(TEST_DIR, "buffer.json"),
-  log:    path.join(TEST_DIR, "instinct.log"),
+  log:    path.join(TEST_DIR, "opentell.log"),
 };
 
 const { detectClaudeObservations, detectValidatedObservation } = require("../lib/observer");

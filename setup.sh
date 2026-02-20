@@ -1,27 +1,27 @@
 #!/bin/bash
 
-# Instinct — Setup Script
+# OpenTell — Setup Script
 # Installs hooks directly into your Claude Code settings for private testing.
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-INSTINCT_DIR="$HOME/.instinct"
+OPENTELL_DIR="$HOME/.opentell"
 CLAUDE_SETTINGS="$HOME/.claude/settings.json"
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  Instinct — Setup"
+echo "  OpenTell — Setup"
 echo "  Claude Code learns your coding preferences"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-# 1. Create ~/.instinct directory
-mkdir -p "$INSTINCT_DIR"
-echo "✓ Created $INSTINCT_DIR"
+# 1. Create ~/.opentell directory
+mkdir -p "$OPENTELL_DIR"
+echo "✓ Created $OPENTELL_DIR"
 
 # 2. Create default config if not exists
-if [ ! -f "$INSTINCT_DIR/config.json" ]; then
-  cat > "$INSTINCT_DIR/config.json" << 'EOF'
+if [ ! -f "$OPENTELL_DIR/config.json" ]; then
+  cat > "$OPENTELL_DIR/config.json" << 'EOF'
 {
   "anthropic_api_key": "",
   "classifier_model": "claude-haiku-4-5-20251001",
@@ -30,19 +30,19 @@ if [ ! -f "$INSTINCT_DIR/config.json" ]; then
   "paused": false
 }
 EOF
-  echo "✓ Created default config at $INSTINCT_DIR/config.json"
+  echo "✓ Created default config at $OPENTELL_DIR/config.json"
 fi
 
 # 3. Check for API key
 if [ -z "$ANTHROPIC_API_KEY" ]; then
-  EXISTING_KEY=$(node -e "try{const c=JSON.parse(require('fs').readFileSync('$INSTINCT_DIR/config.json','utf-8'));console.log(c.anthropic_api_key||'')}catch{console.log('')}" 2>/dev/null)
+  EXISTING_KEY=$(node -e "try{const c=JSON.parse(require('fs').readFileSync('$OPENTELL_DIR/config.json','utf-8'));console.log(c.anthropic_api_key||'')}catch{console.log('')}" 2>/dev/null)
   if [ -z "$EXISTING_KEY" ]; then
     echo ""
     echo "⚠  No ANTHROPIC_API_KEY found."
     echo "   Layer 2 (LLM classification) requires an API key."
     echo "   Set it via:"
     echo "     export ANTHROPIC_API_KEY=sk-ant-..."
-    echo "   Or edit: $INSTINCT_DIR/config.json"
+    echo "   Or edit: $OPENTELL_DIR/config.json"
     echo ""
     echo "   Layer 1 (regex detection) works without a key."
     echo ""
@@ -51,7 +51,7 @@ else
   # Write API key to config
   node -e "
     const fs = require('fs');
-    const p = '$INSTINCT_DIR/config.json';
+    const p = '$OPENTELL_DIR/config.json';
     const c = JSON.parse(fs.readFileSync(p, 'utf-8'));
     c.anthropic_api_key = '$ANTHROPIC_API_KEY';
     fs.writeFileSync(p, JSON.stringify(c, null, 2));
@@ -127,7 +127,7 @@ if [ -f "$CLAUDE_SETTINGS" ]; then
       const scriptDir = '$SCRIPT_DIR';
       
       // Merge — don't overwrite existing hooks, append
-      const instinctHooks = {
+      const opentellHooks = {
         SessionStart: [{
           hooks: [{ type: 'command', command: 'node \"' + scriptDir + '/scripts/on-session-start.js\"', timeout: 5 }]
         }],
@@ -138,14 +138,14 @@ if [ -f "$CLAUDE_SETTINGS" ]; then
           hooks: [{ type: 'command', command: 'node \"' + scriptDir + '/scripts/on-session-end.js\"', timeout: 10 }]
         }]
       };
-      
-      for (const [event, hookConfigs] of Object.entries(instinctHooks)) {
+
+      for (const [event, hookConfigs] of Object.entries(opentellHooks)) {
         if (!settings.hooks[event]) {
           settings.hooks[event] = hookConfigs;
         } else {
           // Check if already installed
           const existing = JSON.stringify(settings.hooks[event]);
-          if (!existing.includes('instinct')) {
+          if (!existing.includes('opentell')) {
             settings.hooks[event].push(...hookConfigs);
           }
         }
@@ -162,14 +162,14 @@ fi
 
 # 6. Make CLI available
 echo ""
-chmod +x "$SCRIPT_DIR/instinct-cli.js"
-echo "✓ CLI ready: node $SCRIPT_DIR/instinct-cli.js"
+chmod +x "$SCRIPT_DIR/opentell-cli.js"
+echo "✓ CLI ready: node $SCRIPT_DIR/opentell-cli.js"
 echo ""
 
 # 7. Create symlink for convenience
 if [ -d "$HOME/.local/bin" ]; then
-  ln -sf "$SCRIPT_DIR/instinct-cli.js" "$HOME/.local/bin/instinct" 2>/dev/null && \
-    echo "✓ Symlinked to ~/.local/bin/instinct" || true
+  ln -sf "$SCRIPT_DIR/opentell-cli.js" "$HOME/.local/bin/opentell" 2>/dev/null && \
+    echo "✓ Symlinked to ~/.local/bin/opentell" || true
 fi
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -178,10 +178,10 @@ echo ""
 echo "  Next steps:"
 echo "  1. Restart Claude Code (or start a new session)"
 echo "  2. Use Claude Code normally"
-echo "  3. Run: node $SCRIPT_DIR/instinct-cli.js"
-echo "     to check what Instinct has learned"
+echo "  3. Run: node $SCRIPT_DIR/opentell-cli.js"
+echo "     to check what OpenTell has learned"
 echo ""
-echo "  Logs: $INSTINCT_DIR/instinct.log"
-echo "  Data: $INSTINCT_DIR/learnings.json"
-echo "  Config: $INSTINCT_DIR/config.json"
+echo "  Logs: $OPENTELL_DIR/opentell.log"
+echo "  Data: $OPENTELL_DIR/learnings.json"
+echo "  Config: $OPENTELL_DIR/config.json"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

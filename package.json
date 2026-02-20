@@ -1,19 +1,19 @@
 {
-  "name": "instinct",
+  "name": "opentell",
   "version": "0.1.0",
   "description": "Claude Code learns your coding preferences from corrections",
   "author": "Eighty7 Labs",
-  "license": "MIT",
-  "main": "instinct-cli.js",
+  "license": "Apache-2.0",
+  "main": "opentell-cli.js",
   "bin": {
-    "instinct": "./instinct-cli.js"
+    "opentell": "./opentell-cli.js"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
     "setup": "bash setup.sh",
-    "status": "node instinct-cli.js status",
+    "status": "node opentell-cli.js status",
     "test": "node test/test-detector.js"
   }
 }

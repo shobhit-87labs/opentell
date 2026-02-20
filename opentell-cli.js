@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 
 /**
- * Instinct CLI
- * 
+ * OpenTell CLI
+ *
  * Usage:
- *   instinct                 Show status (all learnings, grouped by type)
- *   instinct profile         Show your developer profile (narrative)
- *   instinct profile regen   Force regenerate the profile
- *   instinct promote         Promote high-confidence learnings to CLAUDE.md
- *   instinct promote --dry   Preview what would be promoted
- *   instinct consolidate     Find and merge related learnings into deeper insights
- *   instinct patterns        Show cross-session patterns (signals that persist)
- *   instinct context         Show what Claude sees at session start
- *   instinct remove <n>      Remove learning by number
- *   instinct pause           Pause learning
- *   instinct resume          Resume learning
- *   instinct reset           Clear all learnings
- *   instinct export          Export learnings as JSON
- *   instinct import <file>   Import learnings from JSON
- *   instinct log             Show recent log entries
+ *   opentell                 Show status (all learnings, grouped by type)
+ *   opentell profile         Show your developer profile (narrative)
+ *   opentell profile regen   Force regenerate the profile
+ *   opentell promote         Promote high-confidence learnings to CLAUDE.md
+ *   opentell promote --dry   Preview what would be promoted
+ *   opentell consolidate     Find and merge related learnings into deeper insights
+ *   opentell patterns        Show cross-session patterns (signals that persist)
+ *   opentell context         Show what Claude sees at session start
+ *   opentell remove <n>      Remove learning by number
+ *   opentell pause           Pause learning
+ *   opentell resume          Resume learning
+ *   opentell reset           Clear all learnings
+ *   opentell export          Export learnings as JSON
+ *   opentell import <file>   Import learnings from JSON
+ *   opentell log             Show recent log entries
  */
 
 const fs = require("fs");
@@ -61,11 +61,11 @@ async function run() {
           console.log(`\nGenerated: ${new Date(profile.generated_at).toLocaleDateString()}`);
           console.log(`Based on: ${profile.learning_count} learnings across ${profile.session_count} sessions`);
           if (profileNeedsUpdate()) {
-            console.log("\n\u26A1 Profile is stale. Run 'instinct profile regen' to update.");
+            console.log("\n\u26A1 Profile is stale. Run 'opentell profile regen' to update.");
           }
         } else {
           console.log("No developer profile yet.");
-          console.log("Instinct needs 3+ active learnings to build your profile.");
+          console.log("OpenTell needs 3+ active learnings to build your profile.");
           console.log("Keep using Claude Code \u2014 your profile will be generated automatically.");
         }
       }
@@ -81,7 +81,7 @@ async function run() {
         console.log("\u2500".repeat(60));
       } else {
         console.log("No active learnings yet. Context injection is empty.");
-        console.log("Keep using Claude Code \u2014 Instinct will build your context from corrections.");
+        console.log("Keep using Claude Code \u2014 OpenTell will build your context from corrections.");
       }
       break;
     }
@@ -101,7 +101,7 @@ async function run() {
             for (const t of c.texts) console.log(`     - ${t}`);
             console.log("");
           }
-          console.log("Run 'instinct consolidate' to synthesize these into deeper insights.");
+          console.log("Run 'opentell consolidate' to synthesize these into deeper insights.");
         }
       } else {
         console.log("Running consolidation...\n");
@@ -156,7 +156,7 @@ async function run() {
             const type = l.classification || "PREFERENCE";
             console.log(`  [${type}] ${l.text}  (${l.evidence_count}x, conf: ${l.confidence.toFixed(2)})`);
           });
-          console.log("\nRun 'instinct promote' to write these to CLAUDE.md.");
+          console.log("\nRun 'opentell promote' to write these to CLAUDE.md.");
         }
       } else {
         const promotable = getPromotable();
@@ -171,7 +171,7 @@ async function run() {
         console.log("");
         result.promoted.forEach((l) => { console.log(`  \u2713 ${l.text}`); });
         console.log(`\nThese learnings are now in ${result.claudeMdPath}`);
-        console.log("They'll be injected by CLAUDE.md directly, so Instinct won't duplicate them.");
+        console.log("They'll be injected by CLAUDE.md directly, so OpenTell won't duplicate them.");
       }
       break;
     }
@@ -180,8 +180,8 @@ async function run() {
     case "rm": {
       const idx = parseInt(args[1], 10);
       if (isNaN(idx) || idx < 1) {
-        console.error("Usage: instinct remove <number>");
-        console.error("Use 'instinct' to see numbered learnings");
+        console.error("Usage: opentell remove <number>");
+        console.error("Use 'opentell' to see numbered learnings");
         process.exit(1);
       }
       const removed = removeLearning(idx - 1);
@@ -198,7 +198,7 @@ async function run() {
       const inferred = getInferredLearnings();
       if (inferred.length === 0) {
         console.log("No unvalidated observations yet.");
-        console.log("Instinct captures these when Claude adapts to your codebase");
+        console.log("OpenTell captures these when Claude adapts to your codebase");
         console.log("(e.g. \"I'll use pnpm since that's what the project uses\").");
       } else {
         console.log(`${inferred.length} unvalidated observation(s) from Claude:\n`);
@@ -211,7 +211,7 @@ async function run() {
             console.log(`  ${i + 1}. ${l.text}`);
             console.log(`     type: ${type} | conf: ${conf}${area}`);
           });
-        console.log("\nRun 'instinct accept <n>' to validate or 'instinct reject <n>' to discard.");
+        console.log("\nRun 'opentell accept <n>' to validate or 'opentell reject <n>' to discard.");
       }
       break;
     }
@@ -219,8 +219,8 @@ async function run() {
     case "accept": {
       const idx = parseInt(args[1], 10);
       if (isNaN(idx) || idx < 1) {
-        console.error("Usage: instinct accept <number>");
-        console.error("Use 'instinct observations' to see numbered observations");
+        console.error("Usage: opentell accept <number>");
+        console.error("Use 'opentell observations' to see numbered observations");
         process.exit(1);
       }
       const inferred = getInferredLearnings().sort((a, b) => b.confidence - a.confidence);
@@ -240,8 +240,8 @@ async function run() {
     case "reject": {
       const idx = parseInt(args[1], 10);
       if (isNaN(idx) || idx < 1) {
-        console.error("Usage: instinct reject <number>");
-        console.error("Use 'instinct observations' to see numbered observations");
+        console.error("Usage: opentell reject <number>");
+        console.error("Use 'opentell observations' to see numbered observations");
         process.exit(1);
       }
       const inferred = getInferredLearnings().sort((a, b) => b.confidence - a.confidence);
@@ -259,19 +259,19 @@ async function run() {
 
     case "pause":
       updateConfig({ paused: true });
-      console.log("Instinct paused. Existing learnings preserved but no new ones captured.");
-      console.log("Run 'instinct resume' to start again.");
+      console.log("OpenTell paused. Existing learnings preserved but no new ones captured.");
+      console.log("Run 'opentell resume' to start again.");
       break;
 
     case "resume":
       updateConfig({ paused: false });
-      console.log("Instinct resumed. Learning from your corrections again.");
+      console.log("OpenTell resumed. Learning from your corrections again.");
       break;
 
     case "reset": {
       if (args[1] !== "--confirm") {
         console.log("This will delete ALL learnings permanently.");
-        console.log("Run: instinct reset --confirm");
+        console.log("Run: opentell reset --confirm");
         process.exit(0);
       }
       resetAll();
@@ -283,7 +283,7 @@ async function run() {
 
     case "export": {
       const data = loadLearnings();
-      const out = args[1] || "instinct-export.json";
+      const out = args[1] || "opentell-export.json";
       fs.writeFileSync(out, JSON.stringify(data, null, 2));
       console.log(`Exported ${data.learnings.length} learnings to ${out}`);
       break;
@@ -292,7 +292,7 @@ async function run() {
     case "import": {
       const file = args[1];
       if (!file || !fs.existsSync(file)) {
-        console.error("Usage: instinct import <file.json>");
+        console.error("Usage: opentell import <file.json>");
         process.exit(1);
       }
       const imported = JSON.parse(fs.readFileSync(file, "utf-8"));
@@ -332,33 +332,33 @@ async function run() {
     case "help":
     case "--help":
     case "-h":
-      console.log(`Instinct \u2014 Claude Code learns how you think
+      console.log(`OpenTell \u2014 Claude Code learns how you think
 
 Commands:
-  instinct                 Show all learnings grouped by type
-  instinct profile         Show your developer profile (narrative)
-  instinct profile regen   Force regenerate the profile
-  instinct context         Show what Claude sees at session start
-  instinct promote         Promote learnings to CLAUDE.md
-  instinct promote --dry   Preview what would be promoted
-  instinct consolidate     Merge related learnings into deeper insights
-  instinct consolidate --dry  Preview clusters
-  instinct patterns        Show cross-session patterns
-  instinct observations    Show unvalidated observations from Claude
-  instinct accept <n>      Accept an observation (makes it active)
-  instinct reject <n>      Reject an observation (archives it)
-  instinct remove <n>      Remove learning by number
-  instinct pause/resume    Pause or resume learning
-  instinct reset --confirm Clear all learnings
-  instinct export [file]   Export learnings as JSON
-  instinct import <file>   Import learnings from JSON
-  instinct log [n]         Show last n log entries
-  instinct config          Show configuration`);
+  opentell                 Show all learnings grouped by type
+  opentell profile         Show your developer profile (narrative)
+  opentell profile regen   Force regenerate the profile
+  opentell context         Show what Claude sees at session start
+  opentell promote         Promote learnings to CLAUDE.md
+  opentell promote --dry   Preview what would be promoted
+  opentell consolidate     Merge related learnings into deeper insights
+  opentell consolidate --dry  Preview clusters
+  opentell patterns        Show cross-session patterns
+  opentell observations    Show unvalidated observations from Claude
+  opentell accept <n>      Accept an observation (makes it active)
+  opentell reject <n>      Reject an observation (archives it)
+  opentell remove <n>      Remove learning by number
+  opentell pause/resume    Pause or resume learning
+  opentell reset --confirm Clear all learnings
+  opentell export [file]   Export learnings as JSON
+  opentell import <file>   Import learnings from JSON
+  opentell log [n]         Show last n log entries
+  opentell config          Show configuration`);
       break;
 
     default:
       console.log(`Unknown command: ${command}`);
-      console.log("Run 'instinct help' for available commands.");
+      console.log("Run 'opentell help' for available commands.");
   }
 }
 
