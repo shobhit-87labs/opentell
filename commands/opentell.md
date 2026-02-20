@@ -1,3 +1,6 @@
+---
+argument-hint: "[status|observations|accept|reject|profile|context|promote|remove|pause|resume|reset|export|log|stats|config|uninstall] [n]"
+---
 # /opentell — View and manage learned preferences
 
 Show what OpenTell has learned about your coding preferences. Run the CLI tool and display the output.
@@ -18,6 +21,7 @@ node "${CLAUDE_PLUGIN_ROOT}/opentell-cli.js" status
 - `/opentell profile` — Show your developer profile (narrative)
 - `/opentell context` — Show what Claude sees at session start
 - `/opentell promote` — Promote high-confidence learnings to CLAUDE.md
+- `/opentell promote <n>` — Force-promote a specific candidate by number (bypasses confidence threshold)
 - `/opentell remove <n>` — Remove a specific learning by number
 - `/opentell pause` — Pause learning (keep existing preferences)
 - `/opentell resume` — Resume learning

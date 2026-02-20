@@ -25,7 +25,7 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const { buildStatus, buildContext } = require("./lib/skill-writer");
-const { loadLearnings, saveLearnings, removeLearning, resetAll, getAllLearnings, getPromotable, getInferredLearnings, acceptObservation, rejectObservation } = require("./lib/store");
+const { loadLearnings, saveLearnings, removeLearning, resetAll, getAllLearnings, getPromotable, getCandidates, getInferredLearnings, acceptObservation, rejectObservation } = require("./lib/store");
 const { previewPromotion, promoteToClaudeMd } = require("./lib/promoter");
 const { loadConfig, paths, ensureDir } = require("./lib/config");
 
@@ -145,7 +145,21 @@ async function run() {
     }
 
     case "promote": {
-      if (args[1] === "--dry" || args[1] === "--preview") {
+      const promoteIdx = parseInt(args[1], 10);
+      if (!isNaN(promoteIdx) && promoteIdx >= 1) {
+        // Force-promote a specific candidate by number
+        const candidates = getCandidates();
+        const target = candidates[promoteIdx - 1];
+        if (!target) {
+          console.error(`No candidate at position ${promoteIdx}`);
+          console.error("Use 'opentell' to see numbered candidates");
+          process.exit(1);
+        }
+        const result = promoteToClaudeMd(null, [target]);
+        console.log(`Force-promoted: "${target.text}"`);
+        console.log(`\u2713 Written to ${result.claudeMdPath}`);
+        console.log("It'll be injected by CLAUDE.md directly, so OpenTell won't duplicate it.");
+      } else if (args[1] === "--dry" || args[1] === "--preview") {
         const preview = previewPromotion();
         if (preview.promotable.length === 0) {
           console.log("No learnings ready for promotion.");
@@ -165,6 +179,7 @@ async function run() {
         if (promotable.length === 0) {
           console.log("No learnings ready for promotion yet.");
           console.log("Learnings need confidence \u2265 0.80 and 4+ evidence instances.");
+          console.log("Use 'opentell promote <n>' to force-promote a candidate by number.");
           break;
         }
         console.log(`Promoting ${promotable.length} learning(s) to CLAUDE.md...\n`);
