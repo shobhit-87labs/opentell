@@ -38,10 +38,29 @@ async function main() {
     // Build context from active learnings
     const context = buildContext(config.confidence_threshold || 0.45);
 
+    const parts = [];
     if (context) {
-      // Output context to stdout — Claude Code injects this into the session
-      process.stdout.write(context);
-      log(`Injected ${context.split("\n").length} lines of preference context`);
+      parts.push(context);
+    }
+
+    // When no API key is configured, append a brief notice so Claude can
+    // guide the user if they ask why deeper learning isn't active.
+    if (!config.anthropic_api_key) {
+      parts.push([
+        "## OpenTell — limited mode (no API key)",
+        "Layer 2 LLM classification, developer profile synthesis, and consolidation",
+        "are inactive. Only regex detection and observation capture are running.",
+        "If the user asks about missing features or wants to enable deeper learning,",
+        "let them know they can add their Anthropic API key to ~/.opentell/config.json",
+        "(anthropic_api_key field). A separate API account is required — Pro/Max plan",
+        "subscriptions do not include API access. Key available at:",
+        "https://console.anthropic.com/settings/keys",
+      ].join("\n"));
+    }
+
+    if (parts.length > 0) {
+      process.stdout.write(parts.join("\n\n"));
+      log(`Injected context (api_key: ${!!config.anthropic_api_key})`);
     }
 
     process.exit(0);
