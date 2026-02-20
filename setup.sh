@@ -15,6 +15,36 @@ echo "  Claude Code learns your coding preferences"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
+# 0. Check for Node.js
+if ! command -v node &>/dev/null; then
+  echo "✗ Node.js not found."
+  echo ""
+  echo "  OpenTell's hooks run as Node.js scripts, so Node.js 18+ is required."
+  echo ""
+  echo "  Install it from: https://nodejs.org"
+  echo "  Or via a version manager:"
+  echo "    nvm:  https://github.com/nvm-sh/nvm"
+  echo "    fnm:  https://github.com/Schniz/fnm  (faster)"
+  echo ""
+  echo "  Once installed, re-run: bash setup.sh"
+  exit 1
+fi
+
+NODE_VERSION=$(node --version)
+NODE_MAJOR=$(echo "$NODE_VERSION" | sed 's/v\([0-9]*\).*/\1/')
+if [ "$NODE_MAJOR" -lt 18 ]; then
+  echo "✗ Node.js $NODE_VERSION found, but 18+ is required."
+  echo ""
+  echo "  OpenTell uses the native fetch API added in Node.js 18."
+  echo "  Update via your version manager or https://nodejs.org"
+  echo ""
+  echo "  Once updated, re-run: bash setup.sh"
+  exit 1
+fi
+
+echo "✓ Node.js $NODE_VERSION"
+echo ""
+
 # 1. Create ~/.opentell directory
 mkdir -p "$OPENTELL_DIR"
 echo "✓ Created $OPENTELL_DIR"
