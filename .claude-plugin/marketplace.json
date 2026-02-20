@@ -1,0 +1,26 @@
+{
+  "name": "shobhit-87labs",
+  "owner": {
+    "name": "Eighty7 Labs",
+    "url": "https://github.com/shobhit-87labs"
+  },
+  "metadata": {
+    "description": "Eighty7 Labs plugins for Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "opentell",
+      "source": ".",
+      "description": "Claude Code that remembers how you think. Learns your coding preferences from corrections and injects them into every session automatically.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Eighty7 Labs",
+        "url": "https://github.com/shobhit-87labs"
+      },
+      "homepage": "https://github.com/shobhit-87labs/opentell",
+      "repository": "https://github.com/shobhit-87labs/opentell",
+      "license": "Apache-2.0",
+      "keywords": ["memory", "learning", "preferences", "productivity", "context"]
+    }
+  ]
+}

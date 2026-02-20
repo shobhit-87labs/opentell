@@ -1,0 +1,14 @@
+{
+  "name": "opentell",
+  "version": "0.1.0",
+  "description": "Claude Code that remembers how you think. Learns your coding preferences from corrections and injects them into every session automatically.",
+  "author": {
+    "name": "Eighty7 Labs",
+    "url": "https://github.com/shobhit-87labs"
+  },
+  "homepage": "https://github.com/shobhit-87labs/opentell",
+  "repository": "https://github.com/shobhit-87labs/opentell",
+  "license": "Apache-2.0",
+  "keywords": ["memory", "learning", "preferences", "productivity", "context"],
+  "hooks": "hooks/hooks.json"
+}
