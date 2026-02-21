@@ -304,7 +304,7 @@ async function run() {
 
         if (settings.hooks) {
           let removed = 0;
-          for (const event of ["SessionStart", "Stop", "SessionEnd"]) {
+          for (const event of ["SessionStart", "Stop", "SessionEnd", "PostToolUse"]) {
             if (!settings.hooks[event]) continue;
             const before = settings.hooks[event].length;
             settings.hooks[event] = settings.hooks[event].filter((group) => {
@@ -312,7 +312,8 @@ async function run() {
               return !s.includes("opentell") &&
                      !s.includes("on-session-start.js") &&
                      !s.includes("on-stop.js") &&
-                     !s.includes("on-session-end.js");
+                     !s.includes("on-session-end.js") &&
+                     !s.includes("on-post-tool-use.js");
             });
             removed += before - settings.hooks[event].length;
             if (settings.hooks[event].length === 0) {
@@ -331,7 +332,49 @@ async function run() {
         console.log("  ~/.claude/settings.json not found — nothing to remove");
       }
 
-      // 2. Remove symlink
+      // 2. Remove slash command file
+      const commandFile = path.join(os.homedir(), ".claude", "commands", "opentell.md");
+      if (fs.existsSync(commandFile)) {
+        try {
+          fs.unlinkSync(commandFile);
+          console.log("✓ Removed ~/.claude/commands/opentell.md");
+        } catch {
+          console.log("  Could not remove ~/.claude/commands/opentell.md — remove manually if needed");
+        }
+      }
+
+      // 3. Remove plugin cache and registry entry
+      const pluginCache = path.join(os.homedir(), ".claude", "plugins", "cache", "shobhit-87labs", "opentell");
+      if (fs.existsSync(pluginCache)) {
+        try {
+          fs.rmSync(pluginCache, { recursive: true, force: true });
+          console.log("✓ Removed plugin cache (~/.claude/plugins/cache/shobhit-87labs/opentell/)");
+        } catch {
+          console.log("  Could not remove plugin cache — remove manually if needed");
+        }
+      }
+
+      const installedPlugins = path.join(os.homedir(), ".claude", "plugins", "installed_plugins.json");
+      if (fs.existsSync(installedPlugins)) {
+        try {
+          const registry = JSON.parse(fs.readFileSync(installedPlugins, "utf-8"));
+          let changed = false;
+          for (const key of Object.keys(registry.plugins || {})) {
+            if (key.includes("opentell")) {
+              delete registry.plugins[key];
+              changed = true;
+            }
+          }
+          if (changed) {
+            fs.writeFileSync(installedPlugins, JSON.stringify(registry, null, 2));
+            console.log("✓ Removed opentell from ~/.claude/plugins/installed_plugins.json");
+          }
+        } catch {
+          console.log("  Could not update installed_plugins.json — remove manually if needed");
+        }
+      }
+
+      // 4. Remove symlink
       const symlink = path.join(os.homedir(), ".local", "bin", "opentell");
       if (fs.existsSync(symlink)) {
         try {
@@ -342,7 +385,7 @@ async function run() {
         }
       }
 
-      // 3. Optionally delete data
+      // 5. Optionally delete data
       if (withData) {
         try {
           fs.rmSync(paths.root, { recursive: true, force: true });
@@ -455,8 +498,8 @@ Commands:
   opentell reject <n>      Reject an observation (archives it)
   opentell remove <n>      Remove learning by number
   opentell pause/resume    Pause or resume learning
-  opentell uninstall       Remove hooks from Claude Code (keeps data)
-  opentell uninstall --data  Remove hooks and delete all data
+  opentell uninstall       Full uninstall: hooks, command, plugin cache (keeps data)
+  opentell uninstall --data  Full uninstall and delete all learnings data
   opentell reset --confirm Clear all learnings
   opentell export [file]   Export learnings as JSON
   opentell import <file>   Import learnings from JSON

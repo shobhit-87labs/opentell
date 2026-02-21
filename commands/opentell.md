@@ -30,6 +30,7 @@ node "${CLAUDE_PLUGIN_ROOT}/opentell-cli.js" status
 - `/opentell log` — Show recent detection log
 - `/opentell stats` — Show API call counts, token usage, and cost
 - `/opentell config` — Show current configuration (API key masked)
-- `/opentell uninstall` — Remove hooks from Claude Code (restart required to apply)
+- `/opentell uninstall` — Full uninstall: remove hooks, slash command, and plugin cache (restart required to apply)
+- `/opentell uninstall --data` — Full uninstall and delete all learnings data
 
 When the user runs `/opentell`, execute the status command and display the results. For subcommands, parse the argument and run the appropriate CLI command.
