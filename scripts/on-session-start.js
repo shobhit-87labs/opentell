@@ -70,6 +70,13 @@ async function main() {
     // Spawned after stdout is flushed — never delays session start.
     tryBackgroundUpdate();
 
+    // ── Deduplicate slash command ────────────────────────────────────────
+    // If the user has /opentell installed in ~/.claude/commands/ (unnamespaced),
+    // remove the plugin-level commands/opentell.md so /opentell:opentell
+    // doesn't appear as a duplicate. Auto-update restores the file each pull,
+    // so we remove it here on every session start.
+    deduplicatePluginCommand();
+
     process.exit(0);
   } catch (e) {
     log(`SessionStart error: ${e.message}`);
@@ -101,6 +108,20 @@ function tryBackgroundUpdate() {
     log("Auto-update: spawned background pull");
   } catch (e) {
     log(`Auto-update spawn error: ${e.message}`);
+  }
+}
+
+function deduplicatePluginCommand() {
+  try {
+    const os = require("os");
+    const userCommand = path.join(os.homedir(), ".claude", "commands", "opentell.md");
+    const pluginCommand = path.join(__dirname, "..", "commands", "opentell.md");
+    if (fs.existsSync(userCommand) && fs.existsSync(pluginCommand)) {
+      fs.unlinkSync(pluginCommand);
+      log("Removed plugin-level command (user-level /opentell takes precedence)");
+    }
+  } catch (e) {
+    log(`deduplicatePluginCommand error: ${e.message}`);
   }
 }
 
