@@ -72,11 +72,13 @@ node ~/.claude/plugins/cache/shobhit-87labs/opentell/0.1.0/opentell-cli.js <comm
 ```
 /opentell                    # Show all learnings grouped by type
 /opentell profile            # Show your developer profile (narrative)
+/opentell profile regen      # Force-regenerate the developer profile
 /opentell context            # Preview what Claude sees at session start
 /opentell promote            # Promote high-confidence learnings to CLAUDE.md
 /opentell promote <n>        # Force-promote a specific candidate by number
 /opentell promote --dry      # Preview what would be promoted
 /opentell consolidate        # Merge related learnings into deeper insights
+/opentell consolidate --dry  # Preview consolidation clusters
 /opentell patterns           # Show cross-session patterns
 /opentell observations       # Review unvalidated observations from Claude
 /opentell accept <n>         # Accept observation #n (makes it active)
@@ -89,7 +91,8 @@ node ~/.claude/plugins/cache/shobhit-87labs/opentell/0.1.0/opentell-cli.js <comm
 /opentell stats              # Show API call counts, token usage, and cost
 /opentell log [n]            # Show last n log entries
 /opentell config             # Show configuration
-/opentell uninstall          # Remove hooks from Claude Code
+/opentell uninstall          # Remove hooks from Claude Code (keeps data)
+/opentell uninstall --data   # Remove hooks and delete all data
 ```
 
 ---
@@ -300,6 +303,7 @@ opentell/
 │   ├── on-stop.js            # Detects corrections + observations after each turn
 │   ├── on-session-end.js     # Runs intelligence pipeline at session close
 │   ├── on-post-tool-use.js   # Buffers tool events (Bash/Write/Edit)
+│   ├── classify-bg.js        # Background LLM classification worker
 │   └── update-bg.js          # Background git pull (runs detached)
 ├── lib/
 │   ├── detector.js           # Regex correction detection (Layer 1)
