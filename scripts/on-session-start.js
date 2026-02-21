@@ -114,9 +114,22 @@ function tryBackgroundUpdate() {
 function deduplicatePluginCommand() {
   try {
     const os = require("os");
-    const userCommand = path.join(os.homedir(), ".claude", "commands", "opentell.md");
+    const claudeCommandsDir = path.join(os.homedir(), ".claude", "commands");
+    const userCommand = path.join(claudeCommandsDir, "opentell.md");
     const pluginCommand = path.join(__dirname, "..", "commands", "opentell.md");
-    if (fs.existsSync(userCommand) && fs.existsSync(pluginCommand)) {
+
+    // Ensure ~/.claude/commands/ exists and install the unnamespaced /opentell
+    // command if it isn't there yet. This runs for both marketplace and setup.sh
+    // installs, so all users get /opentell regardless of install method.
+    if (!fs.existsSync(userCommand) && fs.existsSync(pluginCommand)) {
+      fs.mkdirSync(claudeCommandsDir, { recursive: true });
+      fs.copyFileSync(pluginCommand, userCommand);
+      log("Installed /opentell command to ~/.claude/commands/");
+    }
+
+    // Remove the plugin-level command so /opentell:opentell doesn't appear
+    // as a duplicate alongside /opentell.
+    if (fs.existsSync(pluginCommand)) {
       fs.unlinkSync(pluginCommand);
       log("Removed plugin-level command (user-level /opentell takes precedence)");
     }
