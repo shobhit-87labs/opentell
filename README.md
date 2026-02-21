@@ -18,6 +18,7 @@ Over time, it builds a **developer profile**: a narrative understanding of how y
 
 ```
 /plugin marketplace add shobhit-87labs/opentell
+/plugin install opentell@shobhit-87labs/opentell
 ```
 
 That's it. Restart Claude Code and OpenTell starts learning.

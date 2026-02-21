@@ -47,6 +47,20 @@ execFile("git", ["-C", PLUGIN_ROOT, "fetch", "origin", "--quiet"], {
     } else {
       const output = (resetOut + resetStderr).trim();
       log(`Auto-update: ${output || "up to date"}`);
+
+      // Re-apply deduplication: git reset restores commands/opentell.md, but if
+      // the user-level /opentell command is already installed we must delete the
+      // plugin-level copy again to prevent /opentell:opentell from reappearing.
+      const userCmd = path.join(os.homedir(), ".claude", "commands", "opentell.md");
+      const pluginCmd = path.join(PLUGIN_ROOT, "commands", "opentell.md");
+      if (fs.existsSync(userCmd) && fs.existsSync(pluginCmd)) {
+        try {
+          fs.unlinkSync(pluginCmd);
+          log("Auto-update: re-deleted plugin command (user-level /opentell takes precedence)");
+        } catch (e) {
+          log(`Auto-update: could not re-delete plugin command: ${e.message}`);
+        }
+      }
     }
   });
 });
