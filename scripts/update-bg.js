@@ -28,17 +28,25 @@ if (!fs.existsSync(path.join(PLUGIN_ROOT, ".git"))) {
   process.exit(0);
 }
 
-execFile("git", ["-C", PLUGIN_ROOT, "pull", "--ff-only", "--quiet"], {
+// Fetch latest from origin, then reset hard to match it exactly.
+// Using fetch + reset instead of pull so local modifications (e.g. files
+// copied during dev) never block the update.
+execFile("git", ["-C", PLUGIN_ROOT, "fetch", "origin", "--quiet"], {
   timeout: 15000,
-}, (err, stdout, stderr) => {
-  if (err) {
-    log(`Auto-update failed: ${err.message}`);
-  } else {
-    const output = (stdout + stderr).trim();
-    if (output && output !== "Already up to date.") {
-      log(`Auto-update: ${output}`);
-    } else {
-      log("Auto-update: already up to date");
-    }
+}, (fetchErr, fetchOut, fetchStderr) => {
+  if (fetchErr) {
+    log(`Auto-update fetch failed: ${fetchErr.message}`);
+    return;
   }
+
+  execFile("git", ["-C", PLUGIN_ROOT, "reset", "--hard", "origin/main", "--quiet"], {
+    timeout: 5000,
+  }, (resetErr, resetOut, resetStderr) => {
+    if (resetErr) {
+      log(`Auto-update reset failed: ${resetErr.message}`);
+    } else {
+      const output = (resetOut + resetStderr).trim();
+      log(`Auto-update: ${output || "up to date"}`);
+    }
+  });
 });
