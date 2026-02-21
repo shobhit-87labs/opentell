@@ -254,6 +254,14 @@ if [ -d "$HOME/.local/bin" ]; then
     echo "✓ Symlinked to ~/.local/bin/opentell" || true
 fi
 
+# 8. Install /opentell slash command (unnamespaced)
+# Plugin commands are namespaced as /plugin:command — installing to ~/.claude/commands/
+# makes it available as /opentell instead of /opentell:opentell.
+mkdir -p "$HOME/.claude/commands"
+ln -sf "$SCRIPT_DIR/commands/opentell.md" "$HOME/.claude/commands/opentell.md" 2>/dev/null && \
+  echo "✓ Installed /opentell slash command to ~/.claude/commands/" || \
+  echo "  Could not install slash command — run manually: ln -sf $SCRIPT_DIR/commands/opentell.md ~/.claude/commands/opentell.md"
+
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  Setup complete!"
 echo ""
