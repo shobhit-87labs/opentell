@@ -13,6 +13,7 @@
 const { getLastPairs } = require("../lib/transcript");
 const { detectSignals } = require("../lib/detector");
 const { detectClaudeObservations, detectValidatedObservation } = require("../lib/observer");
+const { detectToolSignals, formatToolContext } = require("../lib/tool-signals");
 const { addCandidate, addObservation, loadBuffer, saveBuffer, appendWal } = require("../lib/store");
 const { loadConfig, log } = require("../lib/config");
 const { spawn } = require("child_process");
@@ -49,6 +50,25 @@ async function main() {
     const buf = loadBuffer();
     buf.session_id = event.session_id;
 
+    // ── Tool signal detection ────────────────────────────────────────────
+    // Get tool events accumulated since the last Stop (current turn only).
+    const lastStopTs = buf.last_stop_ts || 0;
+    const turnToolEvents = (buf.tool_events || []).filter((e) => e.ts > lastStopTs);
+
+    if (turnToolEvents.length > 0) {
+      const toolCandidates = detectToolSignals(turnToolEvents);
+      for (const candidate of toolCandidates) {
+        addCandidate(candidate);
+        log(`Tool signal [${candidate.classification}]: "${candidate.text}"`);
+      }
+    }
+
+    // Mark current timestamp so next Stop knows where this turn ended
+    buf.last_stop_ts = Date.now();
+
+    // Tool context string for enriching LLM classifier payloads
+    const toolContext = formatToolContext(turnToolEvents);
+
     for (const pair of pairs.slice(-2)) {
       const pairKey = hashPair(pair);
       if (buf.analyzed && buf.analyzed.includes(pairKey)) continue;
@@ -82,6 +102,7 @@ async function main() {
           claude_said: truncate(pair.claude_said, 500),
           user_said: truncate(pair.user_said, 500),
           error_context: errorContext ? truncate(errorContext, 300) : "",
+          tool_context: toolContext,
         };
 
         // WAL: durable record survives if bg classifier crashes

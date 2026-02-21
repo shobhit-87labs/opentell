@@ -175,6 +175,18 @@ cat << EOF
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$SCRIPT_DIR/scripts/on-post-tool-use.js\"",
+            "timeout": 2
+          }
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "hooks": [
@@ -215,6 +227,10 @@ if [ -f "$CLAUDE_SETTINGS" ]; then
         }],
         Stop: [{
           hooks: [{ type: 'command', command: 'node \"' + scriptDir + '/scripts/on-stop.js\"', timeout: 5 }]
+        }],
+        PostToolUse: [{
+          matcher: 'Bash|Write|Edit',
+          hooks: [{ type: 'command', command: 'node \"' + scriptDir + '/scripts/on-post-tool-use.js\"', timeout: 2 }]
         }],
         SessionEnd: [{
           hooks: [{ type: 'command', command: 'node \"' + scriptDir + '/scripts/on-session-end.js\"', timeout: 10 }]
