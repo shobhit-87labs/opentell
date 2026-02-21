@@ -9,8 +9,11 @@
  */
 
 const { buildContext } = require("../lib/skill-writer");
-const { loadConfig, log } = require("../lib/config");
+const { loadConfig, log, paths } = require("../lib/config");
 const { clearBuffer, incrementSessionCount, applyDecay } = require("../lib/store");
+const { spawn } = require("child_process");
+const fs = require("fs");
+const path = require("path");
 
 async function main() {
   try {
@@ -63,11 +66,41 @@ async function main() {
       log(`Injected context (api_key: ${!!config.anthropic_api_key})`);
     }
 
+    // ── Background auto-update (once per 24h) ──────────────────────────
+    // Spawned after stdout is flushed — never delays session start.
+    tryBackgroundUpdate();
+
     process.exit(0);
   } catch (e) {
     log(`SessionStart error: ${e.message}`);
     // Exit 0 even on error — don't block session start
     process.exit(0);
+  }
+}
+
+function tryBackgroundUpdate() {
+  try {
+    const UPDATE_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
+    const checkFile = paths.update_check;
+    const now = Date.now();
+
+    if (fs.existsSync(checkFile)) {
+      const last = parseInt(fs.readFileSync(checkFile, "utf-8").trim(), 10) || 0;
+      if (now - last < UPDATE_INTERVAL_MS) return; // too soon
+    }
+
+    // Write timestamp before spawning so concurrent sessions don't double-pull
+    fs.writeFileSync(checkFile, String(now));
+
+    const scriptPath = path.join(__dirname, "update-bg.js");
+    const child = spawn("node", [scriptPath], {
+      detached: true,
+      stdio: "ignore",
+    });
+    child.unref();
+    log("Auto-update: spawned background pull");
+  } catch (e) {
+    log(`Auto-update spawn error: ${e.message}`);
   }
 }
 
