@@ -70,11 +70,12 @@ async function main() {
     // Spawned after stdout is flushed — never delays session start.
     tryBackgroundUpdate();
 
-    // ── Deduplicate slash command ────────────────────────────────────────
-    // If the user has /opentell installed in ~/.claude/commands/ (unnamespaced),
-    // remove the plugin-level commands/opentell.md so /opentell:opentell
-    // doesn't appear as a duplicate. Auto-update restores the file each pull,
-    // so we remove it here on every session start.
+    // ── Install /opentell slash command ─────────────────────────────────
+    // On first session after install (any method), copies the command file to
+    // ~/.claude/commands/ so /opentell works without a plugin namespace prefix.
+    // Also removes the plugin-level command to prevent /opentell:opentell
+    // from appearing as a duplicate. Runs every session because auto-update
+    // restores the plugin command file every 24h.
     deduplicatePluginCommand();
 
     process.exit(0);

@@ -359,10 +359,10 @@ async function simulate() {
   console.log(`  View log: cat ${path.join(SIM_DIR, "opentell.log")}`);
   console.log(`${"─".repeat(60)}`);
   console.log("\n  To test with real Claude Code:");
-  console.log("    1. cd opentell && bash setup.sh");
+  console.log("    1. Install via Claude Code: /plugin marketplace add shobhit-87labs/opentell");
   console.log("    2. Set ANTHROPIC_API_KEY in ~/.opentell/config.json");
   console.log("    3. Start a Claude Code session and correct it naturally");
-  console.log("    4. Run: node opentell-cli.js");
+  console.log("    4. Run: /opentell");
   console.log("");
 }
 

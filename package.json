@@ -12,7 +12,6 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "setup": "bash setup.sh",
     "status": "node opentell-cli.js status",
     "test": "node test/test-detector.js"
   }
