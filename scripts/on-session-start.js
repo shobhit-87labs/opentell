@@ -2,7 +2,7 @@
 
 /**
  * OpenTell — SessionStart Hook
- * 
+ *
  * Fires when Claude Code starts a new session.
  * Reads learned preferences and outputs them as additionalContext.
  * stdout on exit 0 is injected into Claude's context for this hook.
@@ -11,7 +11,6 @@
 const { buildContext } = require("../lib/skill-writer");
 const { loadConfig, log, paths } = require("../lib/config");
 const { clearBuffer, incrementSessionCount, applyDecay } = require("../lib/store");
-const { spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
@@ -20,7 +19,7 @@ async function main() {
     // Read hook input from stdin
     const input = await readStdin();
     const event = JSON.parse(input);
-    
+
     const config = loadConfig();
     if (config.paused) {
       process.exit(0);
@@ -28,6 +27,20 @@ async function main() {
     }
 
     log(`SessionStart: session=${event.session_id}, source=${event.source}`);
+
+    // ── One-time migration cleanup ──────────────────────────────────────────
+    // Remove the ghost ~/.claude/commands/opentell.md copied by the old model.
+    // The plugin system now owns slash command registration (/opentell:opentell).
+    try {
+      const os = require("os");
+      const legacyCmd = path.join(os.homedir(), ".claude", "commands", "opentell.md");
+      if (fs.existsSync(legacyCmd)) {
+        fs.unlinkSync(legacyCmd);
+        log("Migration: removed legacy ~/.claude/commands/opentell.md");
+      }
+    } catch (e) {
+      log(`Migration cleanup error: ${e.message}`);
+    }
 
     // Reset session buffer
     clearBuffer();
@@ -91,85 +104,11 @@ async function main() {
       log(`Injected context (api_key: ${!!config.anthropic_api_key})`);
     }
 
-    // ── Background auto-update (once per 24h) ──────────────────────────
-    // Spawned after stdout is flushed — never delays session start.
-    tryBackgroundUpdate();
-
-    // ── Install /opentell slash command ─────────────────────────────────
-    // On first session after install (any method), copies the command file to
-    // ~/.claude/commands/ so /opentell works without a plugin namespace prefix.
-    // Also removes the plugin-level command to prevent /opentell:opentell
-    // from appearing as a duplicate. Runs every session because auto-update
-    // restores the plugin command file every 24h.
-    deduplicatePluginCommand();
-
     process.exit(0);
   } catch (e) {
     log(`SessionStart error: ${e.message}`);
     // Exit 0 even on error — don't block session start
     process.exit(0);
-  }
-}
-
-function tryBackgroundUpdate() {
-  try {
-    const UPDATE_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
-    const checkFile = paths.update_check;
-    const now = Date.now();
-
-    if (fs.existsSync(checkFile)) {
-      const last = parseInt(fs.readFileSync(checkFile, "utf-8").trim(), 10) || 0;
-      if (now - last < UPDATE_INTERVAL_MS) return; // too soon
-    }
-
-    // Write timestamp before spawning so concurrent sessions don't double-pull
-    fs.writeFileSync(checkFile, String(now));
-
-    const scriptPath = path.join(__dirname, "update-bg.js");
-    const child = spawn("node", [scriptPath], {
-      detached: true,
-      stdio: "ignore",
-    });
-    child.unref();
-    log("Auto-update: spawned background pull");
-  } catch (e) {
-    log(`Auto-update spawn error: ${e.message}`);
-  }
-}
-
-function deduplicatePluginCommand() {
-  try {
-    const os = require("os");
-    const claudeCommandsDir = path.join(os.homedir(), ".claude", "commands");
-    const userCommand = path.join(claudeCommandsDir, "opentell.md");
-    const pluginCommand = path.join(__dirname, "..", "commands", "opentell.md");
-
-    // Ensure ~/.claude/commands/ exists and install/refresh the unnamespaced
-    // /opentell command. Always overwrite to pick up fixes from auto-updates.
-    // This runs for both marketplace and setup.sh installs.
-    if (fs.existsSync(pluginCommand)) {
-      fs.mkdirSync(claudeCommandsDir, { recursive: true });
-      fs.copyFileSync(pluginCommand, userCommand);
-      log("Installed /opentell command to ~/.claude/commands/");
-    }
-
-    // Remove plugin-level commands so /opentell:opentell doesn't appear
-    // as a duplicate alongside /opentell. Both cache and marketplace copies
-    // can register the namespaced command independently.
-    // Derive the publisher from the cache path: cache/<publisher>/<name>/<version>
-    const pluginsDir = path.join(os.homedir(), ".claude", "plugins");
-    const cacheRelative = path.relative(path.join(pluginsDir, "cache"), path.join(__dirname, ".."));
-    const publisher = cacheRelative.split(path.sep)[0];
-    const marketplaceCommand = path.join(pluginsDir, "marketplaces", publisher, "commands", "opentell.md");
-
-    for (const cmdPath of [pluginCommand, marketplaceCommand]) {
-      if (fs.existsSync(cmdPath)) {
-        fs.unlinkSync(cmdPath);
-        log(`Removed plugin-level command: ${cmdPath}`);
-      }
-    }
-  } catch (e) {
-    log(`deduplicatePluginCommand error: ${e.message}`);
   }
 }
 

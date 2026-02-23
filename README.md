@@ -300,12 +300,11 @@ Edit `~/.opentell/config.json` to customise behaviour:
 ```
 opentell/
 ├── scripts/
-│   ├── on-session-start.js   # Injects context at session start + auto-update
+│   ├── on-session-start.js   # Injects context at session start
 │   ├── on-stop.js            # Detects corrections + observations after each turn
 │   ├── on-session-end.js     # Runs intelligence pipeline at session close
 │   ├── on-post-tool-use.js   # Buffers tool events (Bash/Write/Edit)
-│   ├── classify-bg.js        # Background LLM classification worker
-│   └── update-bg.js          # Background git pull (runs detached)
+│   └── classify-bg.js        # Background LLM classification worker
 ├── lib/
 │   ├── detector.js           # Regex correction detection (Layer 1)
 │   ├── observer.js           # Observation layer (what Claude says)

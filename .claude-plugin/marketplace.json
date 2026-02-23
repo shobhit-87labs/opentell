@@ -12,7 +12,7 @@
       "name": "opentell",
       "source": { "source": "github", "repo": "shobhit-87labs/opentell" },
       "description": "Claude Code that remembers how you think. Learns your coding preferences from corrections and injects them into every session automatically.",
-      "version": "0.1.0",
+      "version": "0.1.2",
       "author": {
         "name": "Eighty7 Labs",
         "url": "https://github.com/shobhit-87labs"

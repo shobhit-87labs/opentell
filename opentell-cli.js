@@ -332,18 +332,7 @@ async function run() {
         console.log("  ~/.claude/settings.json not found — nothing to remove");
       }
 
-      // 2. Remove slash command file
-      const commandFile = path.join(os.homedir(), ".claude", "commands", "opentell.md");
-      if (fs.existsSync(commandFile)) {
-        try {
-          fs.unlinkSync(commandFile);
-          console.log("✓ Removed ~/.claude/commands/opentell.md");
-        } catch {
-          console.log("  Could not remove ~/.claude/commands/opentell.md — remove manually if needed");
-        }
-      }
-
-      // 3. Remove plugin cache, publisher dir (if empty), and registry entry
+      // 2. Remove plugin cache, publisher dir (if empty), and registry entry
       const publisherDir = path.join(os.homedir(), ".claude", "plugins", "cache", "shobhit-87labs");
       const pluginCache = path.join(publisherDir, "opentell");
       if (fs.existsSync(pluginCache)) {
