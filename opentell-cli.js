@@ -343,8 +343,9 @@ async function run() {
         }
       }
 
-      // 3. Remove plugin cache and registry entry
-      const pluginCache = path.join(os.homedir(), ".claude", "plugins", "cache", "shobhit-87labs", "opentell");
+      // 3. Remove plugin cache, publisher dir (if empty), and registry entry
+      const publisherDir = path.join(os.homedir(), ".claude", "plugins", "cache", "shobhit-87labs");
+      const pluginCache = path.join(publisherDir, "opentell");
       if (fs.existsSync(pluginCache)) {
         try {
           fs.rmSync(pluginCache, { recursive: true, force: true });
@@ -352,6 +353,16 @@ async function run() {
         } catch {
           console.log("  Could not remove plugin cache — remove manually if needed");
         }
+      }
+      // Clean up publisher directory if empty
+      if (fs.existsSync(publisherDir)) {
+        try {
+          const remaining = fs.readdirSync(publisherDir);
+          if (remaining.length === 0) {
+            fs.rmSync(publisherDir, { recursive: true, force: true });
+            console.log("✓ Removed empty publisher dir (~/.claude/plugins/cache/shobhit-87labs/)");
+          }
+        } catch { /* ignore */ }
       }
 
       const installedPlugins = path.join(os.homedir(), ".claude", "plugins", "installed_plugins.json");
@@ -372,6 +383,24 @@ async function run() {
         } catch {
           console.log("  Could not update installed_plugins.json — remove manually if needed");
         }
+      }
+
+      // 3b. Remove from enabledPlugins (in case Claude's plugin flow left it)
+      if (fs.existsSync(claudeSettings)) {
+        try {
+          const s = JSON.parse(fs.readFileSync(claudeSettings, "utf-8"));
+          let changed = false;
+          for (const key of Object.keys(s.enabledPlugins || {})) {
+            if (key.includes("opentell")) {
+              delete s.enabledPlugins[key];
+              changed = true;
+            }
+          }
+          if (changed) {
+            fs.writeFileSync(claudeSettings, JSON.stringify(s, null, 2));
+            console.log("✓ Removed opentell from enabledPlugins");
+          }
+        } catch { /* already handled settings parse above */ }
       }
 
       // 4. Remove symlink

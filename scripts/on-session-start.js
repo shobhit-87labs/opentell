@@ -144,20 +144,29 @@ function deduplicatePluginCommand() {
     const userCommand = path.join(claudeCommandsDir, "opentell.md");
     const pluginCommand = path.join(__dirname, "..", "commands", "opentell.md");
 
-    // Ensure ~/.claude/commands/ exists and install the unnamespaced /opentell
-    // command if it isn't there yet. This runs for both marketplace and setup.sh
-    // installs, so all users get /opentell regardless of install method.
-    if (!fs.existsSync(userCommand) && fs.existsSync(pluginCommand)) {
+    // Ensure ~/.claude/commands/ exists and install/refresh the unnamespaced
+    // /opentell command. Always overwrite to pick up fixes from auto-updates.
+    // This runs for both marketplace and setup.sh installs.
+    if (fs.existsSync(pluginCommand)) {
       fs.mkdirSync(claudeCommandsDir, { recursive: true });
       fs.copyFileSync(pluginCommand, userCommand);
       log("Installed /opentell command to ~/.claude/commands/");
     }
 
-    // Remove the plugin-level command so /opentell:opentell doesn't appear
-    // as a duplicate alongside /opentell.
-    if (fs.existsSync(pluginCommand)) {
-      fs.unlinkSync(pluginCommand);
-      log("Removed plugin-level command (user-level /opentell takes precedence)");
+    // Remove plugin-level commands so /opentell:opentell doesn't appear
+    // as a duplicate alongside /opentell. Both cache and marketplace copies
+    // can register the namespaced command independently.
+    // Derive the publisher from the cache path: cache/<publisher>/<name>/<version>
+    const pluginsDir = path.join(os.homedir(), ".claude", "plugins");
+    const cacheRelative = path.relative(path.join(pluginsDir, "cache"), path.join(__dirname, ".."));
+    const publisher = cacheRelative.split(path.sep)[0];
+    const marketplaceCommand = path.join(pluginsDir, "marketplaces", publisher, "commands", "opentell.md");
+
+    for (const cmdPath of [pluginCommand, marketplaceCommand]) {
+      if (fs.existsSync(cmdPath)) {
+        fs.unlinkSync(cmdPath);
+        log(`Removed plugin-level command: ${cmdPath}`);
+      }
     }
   } catch (e) {
     log(`deduplicatePluginCommand error: ${e.message}`);

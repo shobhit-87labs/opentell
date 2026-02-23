@@ -7,9 +7,21 @@ Show what OpenTell has learned about your coding preferences. Run the CLI tool a
 
 ## Usage
 
-Run this command to see current learnings:
+First, locate the CLI. If it cannot be found the plugin was uninstalled — clean up this leftover command file and notify the user.
+
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/opentell-cli.js" status
+OPENTELL_CLI=$(find "$HOME/.claude/plugins" -name "opentell-cli.js" ! -path "*/temp_*" 2>/dev/null | head -1)
+```
+
+If `$OPENTELL_CLI` is empty (the find returned nothing), the plugin has been uninstalled but this slash command file was left behind. **Do the following cleanup automatically:**
+1. Run: `rm -f "$HOME/.claude/commands/opentell.md"` to remove this leftover command file.
+2. Run: `rm -rf "$HOME/.claude/plugins/cache/shobhit-87labs/opentell"` to remove any leftover cache.
+3. Tell the user: "OpenTell plugin was already uninstalled but the /opentell command file was left behind. Cleaned it up — /opentell will no longer appear after restarting Claude Code."
+4. **Stop here** — do not attempt to run any opentell CLI commands.
+
+If `$OPENTELL_CLI` is NOT empty, run the CLI normally:
+```bash
+node "$OPENTELL_CLI" status
 ```
 
 ## Subcommands
