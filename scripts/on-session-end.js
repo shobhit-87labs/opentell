@@ -20,6 +20,7 @@ const { detectCrossSessionPatterns } = require("../lib/cross-session");
 const { shouldConsolidate, runConsolidation, markConsolidationRun } = require("../lib/consolidator");
 const { profileNeedsUpdate, synthesizeProfile } = require("../lib/profiler");
 const { loadConfig, log } = require("../lib/config");
+const { isLLMAvailable } = require("../lib/llm-client");
 
 const START_CONFIDENCE = {
   THINKING_PATTERN:  { high: 0.38, low: 0.28 },
@@ -44,20 +45,20 @@ async function main() {
 
     // ─── 1. Drain WAL ──────────────────────────────────────────
     const walEntries = drainWal();
-    if (walEntries.length > 0 && config.anthropic_api_key) {
+    if (walEntries.length > 0 && isLLMAvailable(config)) {
       log(`SessionEnd: ${walEntries.length} unprocessed pairs in WAL, classifying...`);
       const toProcess = walEntries.slice(0, 10);
 
       for (const pair of toProcess) {
         try {
-          const cls = await classifySingle(pair, config.anthropic_api_key, config.classifier_model);
+          const cls = await classifySingle(pair, config);
 
           if (LEARNING_TYPES.has(cls.classification) && cls.learning) {
             const certainty = cls.certainty || "high";
             const confMap = START_CONFIDENCE[cls.classification] || START_CONFIDENCE.PREFERENCE;
             const startConf = confMap[certainty] || confMap.high;
 
-            addCandidate({
+            await addCandidate({
               text: cls.learning,
               confidence: startConf,
               scope: cls.scope || "global",
@@ -92,7 +93,7 @@ async function main() {
 
     // ─── 3. Consolidation ──────────────────────────────────────
     try {
-      if (shouldConsolidate()) {
+      if (await shouldConsolidate()) {
         log("Running consolidation...");
         const result = await runConsolidation();
         if (result.consolidated > 0) {

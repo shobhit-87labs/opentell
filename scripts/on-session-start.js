@@ -46,18 +46,43 @@ async function main() {
       parts.push(context);
     }
 
-    // When no API key is configured, append a brief notice so Claude can
-    // guide the user if they ask why deeper learning isn't active.
-    if (!config.anthropic_api_key) {
+    // First-run detection: if no LLM is configured at all, inject a setup wizard
+    // that instructs Claude to guide the user interactively via AskUserQuestion.
+    const { isLLMAvailable } = require("../lib/llm-client");
+    if (!isLLMAvailable(config)) {
+      const pluginPath = path.resolve(__dirname, "..");
       parts.push([
-        "## OpenTell — limited mode (no API key)",
-        "Layer 2 LLM classification, developer profile synthesis, and consolidation",
-        "are inactive. Only regex detection and observation capture are running.",
-        "If the user asks about missing features or wants to enable deeper learning,",
-        "let them know they can add their Anthropic API key to ~/.opentell/config.json",
-        "(anthropic_api_key field). A separate API account is required — Pro/Max plan",
-        "subscriptions do not include API access. Key available at:",
-        "https://console.anthropic.com/settings/keys",
+        "⚠️ OPENTELL SETUP REQUIRED — Run this setup NOW before anything else.",
+        "",
+        "Ask the user: \"OpenTell (your AI preference-learning tool) needs a one-time setup.",
+        "Which LLM provider would you like to use?\"",
+        "",
+        "Present these options with pricing (input/output per million tokens):",
+        "  1. Anthropic Claude Haiku   — $1.00 / $5.00   (default, best quality)",
+        "  2. Google Gemini 2.0 Flash  — $0.10 / $0.40   ✨ best value",
+        "  3. Groq llama-3.1-8b-instant — $0.05 / $0.08  (fastest)",
+        "  4. OpenAI gpt-4o-mini       — $0.15 / $0.60",
+        "  5. Custom OpenAI-compatible endpoint",
+        "",
+        "After they choose:",
+        "  - Ask for their API key",
+        `  - Save config using Bash tool: node ${pluginPath}/opentell-cli.js config set <key> <value>`,
+        "    Keys to set per provider:",
+        "      Anthropic:  config set anthropic_api_key <key>",
+        "      Others:     config set llm_provider openai_compatible",
+        "                  config set llm_base_url <url>   (see presets below)",
+        "                  config set llm_api_key <key>",
+        "                  config set classifier_model <model>",
+        "                  config set synthesis_model <model>",
+        "",
+        "  Provider presets:",
+        "    Gemini:  llm_base_url=https://generativelanguage.googleapis.com/v1beta/openai  model=gemini-2.0-flash",
+        "    Groq:    llm_base_url=https://api.groq.com/openai/v1  model=llama-3.1-8b-instant",
+        "    OpenAI:  llm_base_url=https://api.openai.com/v1  model=gpt-4o-mini",
+        "    Custom:  ask user for base_url, api_key, model name",
+        "",
+        "- Confirm: \"OpenTell is now configured with [provider / model]. It will learn your preferences silently.\"",
+        "- Do NOT continue with any other task until setup is complete.",
       ].join("\n"));
     }
 

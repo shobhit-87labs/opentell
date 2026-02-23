@@ -11,6 +11,7 @@
 const { classifySingle, LEARNING_TYPES } = require("../lib/classifier");
 const { addCandidate, removeFromWal } = require("../lib/store");
 const { loadConfig, log } = require("../lib/config");
+const { isLLMAvailable } = require("../lib/llm-client");
 
 // Starting confidence based on classification type + certainty
 const START_CONFIDENCE = {
@@ -29,16 +30,16 @@ async function main() {
     const pair = JSON.parse(Buffer.from(encoded, "base64").toString("utf-8"));
     const config = loadConfig();
 
-    if (!config.anthropic_api_key) process.exit(0);
+    if (!isLLMAvailable(config)) process.exit(0);
 
-    const cls = await classifySingle(pair, config.anthropic_api_key, config.classifier_model);
+    const cls = await classifySingle(pair, config);
 
     if (LEARNING_TYPES.has(cls.classification) && cls.learning) {
       const certainty = cls.certainty || "high";
       const confMap = START_CONFIDENCE[cls.classification] || START_CONFIDENCE.PREFERENCE;
       const startConf = confMap[certainty] || confMap.high;
 
-      addCandidate({
+      await addCandidate({
         text: cls.learning,
         confidence: startConf,
         scope: cls.scope || "global",

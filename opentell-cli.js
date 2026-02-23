@@ -92,7 +92,7 @@ async function run() {
       const { findClusters, runConsolidation, markConsolidationRun } = require("./lib/consolidator");
 
       if (args[1] === "--dry" || args[1] === "--preview") {
-        const clusters = findClusters();
+        const clusters = await findClusters();
         if (clusters.length === 0) {
           console.log("No clusters found for consolidation.");
           console.log("Need 2+ related active learnings in the same area.");
@@ -465,16 +465,51 @@ async function run() {
     }
 
     case "config": {
+      if (args[1] === "set") {
+        const key = args[2];
+        const value = args[3];
+        const SETTABLE = new Set([
+          "llm_provider", "llm_base_url", "llm_api_key",
+          "anthropic_api_key",
+          "classifier_model", "synthesis_model",
+          "confidence_threshold", "max_learnings",
+        ]);
+        if (!key || !SETTABLE.has(key)) {
+          console.error(`Usage: opentell config set <key> <value>`);
+          console.error(`Settable keys: ${[...SETTABLE].join(", ")}`);
+          process.exit(1);
+        }
+        if (value === undefined) {
+          console.error(`Usage: opentell config set ${key} <value>`);
+          process.exit(1);
+        }
+        // Coerce numeric fields
+        let coerced = value;
+        if (key === "confidence_threshold" || key === "max_learnings") {
+          coerced = Number(value);
+          if (isNaN(coerced)) {
+            console.error(`${key} must be a number`);
+            process.exit(1);
+          }
+        }
+        updateConfig({ [key]: coerced });
+        const masked = key.endsWith("_api_key") ? "***" : coerced;
+        console.log(`Set ${key} = ${masked}`);
+        break;
+      }
+
       const config = loadConfig();
       const display = { ...config };
-      if (display.anthropic_api_key) {
-        // Mask key — show prefix and last 4 chars only
-        const k = display.anthropic_api_key;
-        display.anthropic_api_key = k.slice(0, 12) + "..." + k.slice(-4);
+      // Mask all API key fields
+      for (const k of Object.keys(display)) {
+        if (k.endsWith("_api_key") && display[k]) {
+          const v = display[k];
+          display[k] = v.slice(0, 8) + "..." + v.slice(-4);
+        }
       }
       console.log(JSON.stringify(display, null, 2));
       console.log(`\nConfig file: ${paths.config}`);
-      console.log("(API key is masked. Edit the file directly to change it.)");
+      console.log("(API keys are masked. Use 'opentell config set <key> <value>' to update.)");
       break;
     }
 
@@ -505,7 +540,8 @@ Commands:
   opentell import <file>   Import learnings from JSON
   opentell stats           Show API call counts, token usage, and cost
   opentell log [n]         Show last n log entries
-  opentell config          Show configuration`);
+  opentell config          Show configuration
+  opentell config set <key> <value>  Update a config value`);
       break;
 
     default:
